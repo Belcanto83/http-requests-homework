@@ -1,2 +1,4 @@
 .idea/
+info_not_for_git/
 *.pyc
+pandas_training.ipynb
