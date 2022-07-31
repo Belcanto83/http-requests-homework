@@ -1,5 +1,7 @@
 from superhero.superhero_api import SuperHero
 from yandex.disk.yandex_disk_api import YandexDisk
+from stackoverflow.stackoverflow_api import StackOverFlow
+from datetime import datetime, timedelta
 import pandas as pd
 import json
 from pprint import pprint
@@ -52,6 +54,31 @@ def upload_file_to_yandex_disk(file_path: str):
     # ya_disk.download_file_from_disk("shinserv/20181106_115148.jpg", "downloaded_file.jpg")
 
 
+def get_questions_from_stackoverflow_by_tag_and_date(tagged='python', fromdate=None, pagesize=100):
+    """Выводит список всех вопросов, заданых на сайте 'https://stackoverflow.com', по заданным тэгу и дате.
+    Дата должна быть задана строкой в формате 'DD-MM-YYYY'.
+    За один запрос по API функция получает с сайта число вопросов, указанное в параметре 'pagesize'.
+    Запросы по API выполняются до тех пор, пока не будут получены все вопросы, удовлетворяющие условиям поиска,
+    или не возникнет ошибка (превышение допустимого количества запросов к сайту)."""
+
+    questions_handler = StackOverFlow()
+
+    if fromdate is None:
+        utcnow = datetime.utcnow()
+        total_seconds = int((utcnow - timedelta(days=1) - datetime(1970, 1, 1)).total_seconds())
+    else:
+        day, month, year = map(int, fromdate.split('-'))
+        total_seconds = int((datetime(year=year, month=month, day=day) - datetime(1970, 1, 1)).total_seconds())
+
+    kwargs = dict(tagged=tagged, fromdate=total_seconds, pagesize=pagesize)
+    res = questions_handler.get_questions(**kwargs)
+    print(f'Вопросы по тэгу(ам) "{tagged}", '
+          f'начиная с даты {(datetime(1970, 1, 1) + timedelta(seconds=total_seconds)).strftime("%d-%m-%Y")}:')
+    pprint(res)
+    print()
+    print('Число вопросов:', len(res['items']))
+
+
 if __name__ == '__main__':
     # Задача №1. Поиск лучшего супергероя
     print('Задача №1. Поиск лучшего супергероя')
@@ -66,3 +93,8 @@ if __name__ == '__main__':
     # Задача №2. Загрузка файла с локального компьютера на Яндекс.Диск
     print('Задача №2. Загрузка файла с локального компьютера на Яндекс.Диск')
     upload_file_to_yandex_disk(file_path=path_to_file)
+    print()
+
+    # Задача №3. Получение списка вопросов с сайта "https://stackoverflow.com"
+    print('Задача №3. Получение списка вопросов с сайта "https://stackoverflow.com"')
+    get_questions_from_stackoverflow_by_tag_and_date(tagged='python', pagesize=100, fromdate='31-07-2022')
